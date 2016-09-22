@@ -10,3 +10,4 @@ If you are looking for a static simple shell, take a look on [nash](https://gith
 
 - Vaccuom: 0 LoC
 
+*In addition to being useful, this is a desperate attempt to have an opensource project with my friends.*
