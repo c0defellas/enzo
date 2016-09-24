@@ -11,7 +11,7 @@ If you are looking for a static simple shell, take a look on
 
 ## Programs available:
 
-- cat: 70 LoC
+- cat: 72 LoC
 
 ## Dependencies
 
