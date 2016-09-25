@@ -1,32 +1,44 @@
 package main
 
-import "os"
+import (
+	"io"
+	"os"
+)
 
-func echo(args []string, newline bool) {
+func echo(out io.Writer, args []string, newline bool) {
 	last := len(args) - 1
 
 	for i := 0; i < len(args); i++ {
-		os.Stdout.Write([]byte(args[i]))
+		out.Write([]byte(args[i]))
 
 		if i < last {
-			os.Stdout.Write([]byte{' '})
+			out.Write([]byte{' '})
 		}
 	}
 
 	if newline {
-		os.Stdout.Write([]byte{0x0a})
+		out.Write([]byte{0x0a})
 	}
 }
 
-func main() {
+func parsearg(args []string) ([]string, bool) {
 	newline := true
-	start := 1
-	last := len(os.Args) - 1
 
-	if last > 0 && os.Args[1] == "-n" {
+	if len(args) == 0 {
+		return args, true
+	}
+
+	start := 1
+
+	if len(args) > 1 && args[1] == "-n" {
 		newline = false
 		start = 2
 	}
 
-	echo(os.Args[start:], newline)
+	return args[start:], newline
+}
+
+func main() {
+	args, newline := parsearg(os.Args)
+	echo(os.Stdout, args, newline)
 }
