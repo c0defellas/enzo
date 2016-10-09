@@ -184,7 +184,7 @@ func showpid(pid os.FileInfo) error {
 		return err
 	}
 
-	fmt.Printf("%s\t%s\t%.20s\n", status.pid(), user, cmdline)
+	fmt.Printf("%s\t%s\t%s\t%.20s\n", user, status.pid(), status.ppid(), cmdline)
 	return nil
 }
 

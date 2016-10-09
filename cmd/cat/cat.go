@@ -21,6 +21,7 @@ func cat(in io.Reader, out io.Writer, name string) error {
 
 	for {
 		n, err := in.Read(buf[:])
+
 		if n <= 0 {
 			break
 		}
