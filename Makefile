@@ -1,13 +1,13 @@
 all: install test
 
-TARGETS = echo cat
+TARGETS = echo cat fdisk
 
 test:
 	go test -v ./...
 
 install:
 	@for cmd in $(TARGETS); do \
-	rm $(GOPATH)/bin/$$cmd; \
+	rm -f $(GOPATH)/bin/$$cmd; \
 	done; \
 	go install ./cmd/...
 	@for cmd in $(TARGETS); do \

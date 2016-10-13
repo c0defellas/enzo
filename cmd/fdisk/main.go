@@ -49,47 +49,29 @@ func diskinfo(fname string) error {
 
 	if part, err, empty = NewPartition(mbr[CPart1 : CPart1+PEntrySZ]); err != nil {
 		return err
-	}
-
-	if !empty {
+	} else if !empty {
 		fmt.Printf("%s\n", part)
 	}
 
 	if part, err, empty = NewPartition(mbr[CPart2 : CPart2+PEntrySZ]); err != nil {
 		return err
-	}
-
-	if !empty {
+	} else if !empty {
 		fmt.Printf("%s\n", part)
 	}
 
 	if part, err, empty = NewPartition(mbr[CPart3 : CPart3+PEntrySZ]); err != nil {
 		return err
-	}
-
-	if !empty {
+	} else if !empty {
 		fmt.Printf("%s\n", part)
 	}
 
 	if part, err, empty = NewPartition(mbr[CPart4 : CPart4+PEntrySZ]); err != nil {
 		return err
-	}
-
-	if !empty {
+	} else if !empty {
 		fmt.Printf("%s\n", part)
 	}
 
 	return nil
-}
-
-func isPartEmpty(buf []byte) bool {
-	for i := 0; i < 16; i++ {
-		if buf[i] != 0 {
-			return false
-		}
-	}
-
-	return true
 }
 
 func main() {

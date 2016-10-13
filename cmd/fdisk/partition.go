@@ -98,3 +98,13 @@ func NewPartition(entry []byte) (*partition, error, bool) {
 
 	return part, err, false
 }
+
+func isPartEmpty(buf []byte) bool {
+	for i := 0; i < 16; i++ {
+		if buf[i] != 0 {
+			return false
+		}
+	}
+
+	return true
+}
