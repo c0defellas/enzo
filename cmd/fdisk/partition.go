@@ -79,12 +79,18 @@ func NewPartition(entry []byte) (*partition, error, bool) {
 
 	part.status = status(entry[0])
 	part.begin.head = uint8(entry[1])
-	part.begin.sector = uint8(entry[2])
-	part.begin.cylinder = uint16(entry[3])
+	part.begin.sector = getsector(entry[2])
+
+	if part.begin.sector == 0 {
+		return nil, fmt.Errorf("First sector must be >= 1. Found %d",
+			part.begin.sector), false
+	}
+
+	part.begin.cylinder = getcylinder(entry[2], entry[3])
 	part.typ = typ(entry[4])
 	part.end.head = uint8(entry[5])
-	part.end.sector = uint8(entry[6] & 0x3f) // sector in bits 5-0
-	part.end.cylinder = uint16(entry[6]&0xc0)<<2 | uint16(entry[7])
+	part.end.sector = getsector(entry[6])
+	part.end.cylinder = getcylinder(entry[6], entry[7])
 
 	buf := bytes.NewBuffer(entry[8:12])
 	err := binary.Read(buf, binary.LittleEndian, &part.lba)
@@ -99,6 +105,27 @@ func NewPartition(entry []byte) (*partition, error, bool) {
 	return part, err, false
 }
 
+func (p *partition) IsEqual(other *partition) bool {
+	if p == other {
+		return true
+	}
+
+	if p.status != other.status ||
+		p.begin.head != other.begin.head ||
+		p.begin.sector != other.begin.sector ||
+		p.begin.cylinder != other.begin.cylinder ||
+		p.typ != other.typ ||
+		p.end.head != other.end.head ||
+		p.end.sector != other.end.sector ||
+		p.end.cylinder != other.end.cylinder ||
+		p.lba != other.lba ||
+		p.nsectors != other.nsectors {
+		return false
+	}
+
+	return true
+}
+
 func isPartEmpty(buf []byte) bool {
 	for i := 0; i < 16; i++ {
 		if buf[i] != 0 {
@@ -107,4 +134,12 @@ func isPartEmpty(buf []byte) bool {
 	}
 
 	return true
+}
+
+func getsector(b byte) uint8 {
+	return b & 0x3f // sector in bits 5-0
+}
+
+func getcylinder(b1, b2 byte) uint16 {
+	return uint16(b1&0xc0)<<2 | uint16(b2)
 }
