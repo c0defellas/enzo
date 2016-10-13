@@ -87,7 +87,7 @@ func main() {
 		err := diskinfo(disk)
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get MBR/GPT info: %s", err)
+			fmt.Fprintf(os.Stderr, "Failed to get MBR/GPT info: %s\n", err)
 			os.Exit(1)
 		}
 	}
