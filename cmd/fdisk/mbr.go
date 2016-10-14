@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+type mbr [512]byte
+
 const (
 	// Classical MBR structure
 	CPart1 = 0x1be // 16 bytes each
@@ -22,16 +24,24 @@ const (
 	// MBR magic numbers
 	Magic1 = 0x55
 	Magic2 = 0xaa
+
+	// bootstrap code
+	BCOffEnd = 0x01bd
+	BCSize   = BCOffEnd
 )
 
 var (
-	flags    *flag.FlagSet
-	flagHelp *bool
+	flags        *flag.FlagSet
+	flagHelp     *bool
+	flagCreate   *bool
+	flagBootcode *string
 )
 
 func init() {
 	flags = flag.NewFlagSet("mbr", flag.ContinueOnError)
 	flagHelp = flags.Bool("help", false, "Show this help")
+	flagCreate = flags.Bool("create", false, "Create new MBR")
+	flagBootcode = flags.String("bootcode", "", "Bootsector binary code")
 }
 
 func diskinfo(fname string) error {
@@ -84,7 +94,62 @@ func diskinfo(fname string) error {
 	return nil
 }
 
-func mbr(args []string) error {
+func NewMBR() *mbr {
+	mbr := mbr{}
+	mbr[Magic1Off] = Magic1
+	mbr[Magic2Off] = Magic2
+	return &mbr
+}
+
+func (m *mbr) SetBootcode(bcode []byte) error {
+	if len(bcode) > BCSize {
+		return fmt.Errorf("bootcode must have less than %d bytes", BCSize)
+	}
+
+	if copied := copy(m[0:BCOffEnd], bcode[:]); copied != len(bcode) {
+		return fmt.Errorf("Failed to copy bootcode to mbr")
+	}
+
+	return nil
+}
+
+func mbrCreate(devfname, bootfname string) error {
+	mbr := NewMBR()
+
+	devfile, err := os.OpenFile(devfname, os.O_RDWR, 0)
+
+	if err != nil {
+		return err
+	}
+
+	if bootfname != "" {
+		bfile, err := os.Open(bootfname)
+
+		if err != nil {
+			return err
+		}
+
+		var bootcode [BCSize + 1]byte
+
+		n, err := bfile.Read(bootcode[:])
+
+		if err == io.EOF || n > BCSize {
+			return fmt.Errorf("bootcode must have less than %d bytes. Got %d", BCSize, n)
+		}
+
+		err = mbr.SetBootcode(bootcode[0:n])
+
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = devfile.Write(mbr[:])
+
+	return err
+}
+
+func runmbr(args []string) error {
 	flags.Parse(args[1:])
 
 	if *flagHelp {
@@ -94,8 +159,12 @@ func mbr(args []string) error {
 
 	disks := flags.Args()
 
-	if len(disks) == 0 {
-		return fmt.Errorf("Require a device file")
+	if len(disks) != 1 {
+		return fmt.Errorf("Require one device file")
+	}
+
+	if *flagCreate {
+		return mbrCreate(disks[0], *flagBootcode)
 	}
 
 	for _, disk := range disks {

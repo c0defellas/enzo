@@ -29,7 +29,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "mbr":
-		err = mbr(os.Args[1:])
+		err = runmbr(os.Args[1:])
 	}
 
 	if err != nil {
