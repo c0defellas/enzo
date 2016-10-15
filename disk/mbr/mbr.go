@@ -1,13 +1,21 @@
-package main
+package mbr
 
 import (
-	"flag"
 	"fmt"
 	"io"
+	"math"
 	"os"
 )
 
-type mbr [512]byte
+type (
+	mbr [512]byte
+
+	// cylinder-head-sector
+	chs struct {
+		head, sector uint8
+		cylinder     uint16
+	}
+)
 
 const (
 	// Classical MBR structure
@@ -30,21 +38,15 @@ const (
 	BCSize   = BCOffEnd
 )
 
-var (
-	flags        *flag.FlagSet
-	flagHelp     *bool
-	flagCreate   *bool
-	flagBootcode *string
-)
-
-func init() {
-	flags = flag.NewFlagSet("mbr", flag.ContinueOnError)
-	flagHelp = flags.Bool("help", false, "Show this help")
-	flagCreate = flags.Bool("create", false, "Create new MBR")
-	flagBootcode = flags.String("bootcode", "", "Bootsector binary code")
+func NewCHS(cylinder uint16, head uint8, sector uint8) chs {
+	return chs{
+		cylinder: cylinder,
+		head:     head,
+		sector:   sector,
+	}
 }
 
-func diskinfo(fname string) error {
+func Info(fname string) error {
 	file, err := os.Open(fname)
 
 	if err != nil {
@@ -113,7 +115,7 @@ func (m *mbr) SetBootcode(bcode []byte) error {
 	return nil
 }
 
-func mbrCreate(devfname, bootfname string) error {
+func Create(devfname, bootfname string) error {
 	mbr := NewMBR()
 
 	devfile, err := os.OpenFile(devfname, os.O_RDWR, 0)
@@ -149,31 +151,21 @@ func mbrCreate(devfname, bootfname string) error {
 	return err
 }
 
-func runmbr(args []string) error {
-	flags.Parse(args[1:])
+func CHS2LBA(c uint16, h uint8, s uint8) uint32 {
+	return (uint32(c)*16+uint32(h))*63 + uint32((s - 1))
+}
 
-	if *flagHelp {
-		flags.PrintDefaults()
-		return nil
-	}
+func LBA2C(lba uint32) uint16 {
+	return uint16(math.Mod(float64(lba), 16*63))
+}
 
-	disks := flags.Args()
+func LBA2H(lba uint32) uint8 {
+	lbaf := float64(lba)
+	spt := float64(63)
+	hpt := float64(16)
+	return uint8(math.Mod(math.Mod(lbaf, spt), hpt))
+}
 
-	if len(disks) != 1 {
-		return fmt.Errorf("Require one device file")
-	}
-
-	if *flagCreate {
-		return mbrCreate(disks[0], *flagBootcode)
-	}
-
-	for _, disk := range disks {
-		err := diskinfo(disk)
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+func LBA2S(lba uint32) uint8 {
+	return uint8(math.Mod(float64(lba), float64(63))) + 1
 }

@@ -1,4 +1,4 @@
-package main
+package mbr
 
 import (
 	"bytes"
@@ -7,12 +7,6 @@ import (
 )
 
 type (
-	// cylinder-head-sector
-	chs struct {
-		head, sector uint8
-		cylinder     uint16
-	}
-
 	status byte
 	typ    byte
 

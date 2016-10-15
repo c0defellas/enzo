@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/tiago4orion/enzo/cmd/fdisk/cmds"
 )
 
 var (
@@ -29,7 +31,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "mbr":
-		err = runmbr(os.Args[1:])
+		err = cmds.MBR(os.Args[1:])
 	}
 
 	if err != nil {
