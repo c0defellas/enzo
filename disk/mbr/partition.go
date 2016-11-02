@@ -60,6 +60,15 @@ Number of sectors: %d
 	return fmt.Sprintf(format, p.number, p.status, p.typ, p.begin, p.end, p.lba, p.nsectors)
 }
 
+func (p partition) Encode() []byte {
+	var data [16]byte
+
+	data[0] = p.status
+	data[1] = p.begin.head
+	data[2] = (p.begin.cylinder >> 6) | (p.begin.sector & 0x3f)
+	return data[:]
+}
+
 func NewPartition(entry []byte) (*partition, error, bool) {
 	part := &partition{}
 
@@ -97,6 +106,10 @@ func NewPartition(entry []byte) (*partition, error, bool) {
 	err = binary.Read(buf, binary.LittleEndian, &part.nsectors)
 
 	return part, err, false
+}
+
+func NewEmptyPartition() *partition {
+	return partition{}
 }
 
 func (p *partition) IsEqual(other *partition) bool {

@@ -3,6 +3,7 @@ package cmds
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/tiago4orion/enzo/disk/mbr"
 )
@@ -20,13 +21,22 @@ func init() {
 	flagCreate = flags.Bool("create", false, "Create new MBR")
 	flagUpdate = flags.Bool("update", false, "Update MBR")
 	flagAddpart = flag.Int("add-part", 0, "Add partition")
+	flagDelpart = flag.Int("del-part", 0, "Delete partition")
 	flagStartsect = flag.Int("start-sect", 0, "start sector")
 	flagLastsect = flag.String("last-sect", "", "last sector (modififers +K, +M, +G works)")
 	flagBootcode = flags.String("bootcode", "", "Bootsector binary code")
 }
 
-func updateMBR(partnumber int, startsect int, lastsect string) error {
-	return nil
+func addPart(disk string, partnumber int, startsect int, lastsect string) error {
+	mbr, err := mbr.FromFile(disk)
+
+	if err != nil {
+		return err
+	}
+
+	sect, n
+
+	mbr, err := mbr.FromBytes()
 }
 
 func MBR(args []string) error {
@@ -52,21 +62,25 @@ func MBR(args []string) error {
 	}
 
 	if *flagUpdate {
-		if *flagAddpart <= 0 {
-			return fmt.Errorf("-update requires flag -add-part")
+		if *flagAddpart <= 0 || *flagDelpart == 0 {
+			return fmt.Errorf("-update requires flag -add-part or --del-part")
 		}
 
-		partNumber := *flagAddpart
+		if *flagAddpart != 0 {
+			partNumber := *flagAddpart
 
-		if *flagStartsect == -1 {
-			return fmt.Errorf("-add-part requires -start-sect")
+			if *flagStartsect == -1 {
+				return fmt.Errorf("-add-part requires -start-sect")
+			}
+
+			if *flagLastsect == "" {
+				return fmt.Errorf("-add-part requires -last-sect")
+			}
+
+			return addPart(disks[0], partNumber, *flagStartsect, *flagLastsect)
 		}
 
-		if *flagLastsect == "" {
-			return fmt.Errorf("-add-part requires -last-sect")
-		}
-
-		return updateMBR(partNumber, *flagStartsect, *flagLastsect)
+		return fmt.Errorf("-del-part not implemented")
 	}
 
 	for _, disk := range disks {

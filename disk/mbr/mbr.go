@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	mbr [512]byte
+	mbr [MBRSize]byte
 
 	// cylinder-head-sector
 	chs struct {
@@ -18,6 +18,7 @@ type (
 )
 
 const (
+	MBRSize = 0x200
 	// Classical MBR structure
 	CPart1 = 0x1be // 16 bytes each
 	CPart2 = 0x1ce
@@ -53,7 +54,7 @@ func Info(fname string) error {
 		return err
 	}
 
-	var mbr [512]byte
+	var mbr [MBRSize]byte
 
 	_, err = file.Read(mbr[:])
 
@@ -103,6 +104,27 @@ func NewMBR() *mbr {
 	return &mbr
 }
 
+func FromFile(disk string) (*mbr, error) {
+	mbr := mbr{}
+	devfile, err := os.OpenFile(disk, os.O_RDWR, 0)
+
+	if err != nil {
+		return nil, err
+	}
+
+	n, err := devfile.Read([MBRSize]byte(mbr)[:])
+
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	if n < MBRSize {
+		return nil, fmt.Errorf("MBR requires at least 512 bytes")
+	}
+
+	return &mbr, nil
+}
+
 func (m *mbr) SetBootcode(bcode []byte) error {
 	if len(bcode) > BCSize {
 		return fmt.Errorf("bootcode must have less than %d bytes", BCSize)
@@ -113,6 +135,10 @@ func (m *mbr) SetBootcode(bcode []byte) error {
 	}
 
 	return nil
+}
+
+func (m *mbr) SetPart(index int, part *partition) {
+
 }
 
 func Create(devfname, bootfname string) error {

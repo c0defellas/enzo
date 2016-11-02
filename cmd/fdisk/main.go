@@ -32,6 +32,9 @@ func main() {
 	switch os.Args[1] {
 	case "mbr":
 		err = cmds.MBR(os.Args[1:])
+	default:
+		perr("Invalid subcommand: %s\n", os.Args[1])
+		ox.Exit(1)
 	}
 
 	if err != nil {
