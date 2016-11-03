@@ -3,16 +3,15 @@ package cmds
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/tiago4orion/enzo/disk/mbr"
 )
 
 var (
-	flags                            *flag.FlagSet
-	flagHelp, flagCreate, flagUpdate *bool
-	flagAddpart, flagStartsect       *int
-	flagBootcode, flagLastsect       *string
+	flags                                   *flag.FlagSet
+	flagHelp, flagCreate, flagUpdate        *bool
+	flagAddpart, flagDelpart, flagStartsect *int
+	flagBootcode, flagLastsect              *string
 )
 
 func init() {
@@ -28,15 +27,15 @@ func init() {
 }
 
 func addPart(disk string, partnumber int, startsect int, lastsect string) error {
-	mbr, err := mbr.FromFile(disk)
+	mbrdata, err := mbr.FromFile(disk)
 
 	if err != nil {
 		return err
 	}
 
-	sect, n
-
-	mbr, err := mbr.FromBytes()
+	p := mbr.NewEmptyPartition()
+	mbrdata.SetPart(partnumber, p)
+	return nil
 }
 
 func MBR(args []string) error {

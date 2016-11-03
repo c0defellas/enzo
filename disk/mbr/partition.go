@@ -30,8 +30,8 @@ func (t typ) String() string {
 	case 0x83:
 		return fmt.Sprintf("%x (Linux)", int(t))
 	}
-	return "unknown"
 
+	return "unknown"
 }
 
 func (st status) String() string {
@@ -60,12 +60,12 @@ Number of sectors: %d
 	return fmt.Sprintf(format, p.number, p.status, p.typ, p.begin, p.end, p.lba, p.nsectors)
 }
 
-func (p partition) Encode() []byte {
+func (p partition) Bytes() []byte {
 	var data [16]byte
 
-	data[0] = p.status
+	data[0] = byte(p.status)
 	data[1] = p.begin.head
-	data[2] = (p.begin.cylinder >> 6) | (p.begin.sector & 0x3f)
+	data[2] = byte((p.begin.cylinder >> 6) | uint16(p.begin.sector&0x3f))
 	return data[:]
 }
 
@@ -109,7 +109,7 @@ func NewPartition(entry []byte) (*partition, error, bool) {
 }
 
 func NewEmptyPartition() *partition {
-	return partition{}
+	return &partition{}
 }
 
 func (p *partition) IsEqual(other *partition) bool {

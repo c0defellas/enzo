@@ -34,7 +34,7 @@ func main() {
 		err = cmds.MBR(os.Args[1:])
 	default:
 		perr("Invalid subcommand: %s\n", os.Args[1])
-		ox.Exit(1)
+		os.Exit(1)
 	}
 
 	if err != nil {

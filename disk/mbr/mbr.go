@@ -97,11 +97,11 @@ func Info(fname string) error {
 	return nil
 }
 
-func NewMBR() *mbr {
+func NewMBR() mbr {
 	mbr := mbr{}
 	mbr[Magic1Off] = Magic1
 	mbr[Magic2Off] = Magic2
-	return &mbr
+	return mbr
 }
 
 func FromFile(disk string) (*mbr, error) {
@@ -112,7 +112,7 @@ func FromFile(disk string) (*mbr, error) {
 		return nil, err
 	}
 
-	n, err := devfile.Read([MBRSize]byte(mbr)[:])
+	n, err := devfile.Read(mbr[:])
 
 	if err != nil && err != io.EOF {
 		return nil, err
@@ -125,7 +125,7 @@ func FromFile(disk string) (*mbr, error) {
 	return &mbr, nil
 }
 
-func (m *mbr) SetBootcode(bcode []byte) error {
+func (m mbr) SetBootcode(bcode []byte) error {
 	if len(bcode) > BCSize {
 		return fmt.Errorf("bootcode must have less than %d bytes", BCSize)
 	}
@@ -137,8 +137,8 @@ func (m *mbr) SetBootcode(bcode []byte) error {
 	return nil
 }
 
-func (m *mbr) SetPart(index int, part *partition) {
-
+func (m mbr) SetPart(index int, part *partition) {
+	copy(m[CPart1+index*16:16], part.Bytes())
 }
 
 func Create(devfname, bootfname string) error {
