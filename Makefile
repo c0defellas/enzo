@@ -1,6 +1,6 @@
 all: install test
 
-TARGETS = echo cat
+TARGETS = echo cat kill
 
 test:
 	go test -v ./...
