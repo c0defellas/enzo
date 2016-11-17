@@ -16,9 +16,9 @@ install:
 	done; \
 	go install $(CMD)/...
 	@for cmd in $(TARGETS); do \
-		echo -ne "\t\t"; \
+		echo -n "\t\t"; \
 		du -h $(GOPATH)/bin/$$cmd ; \
-		echo -ne "stripped:\t"; \
+		echo -n "stripped:\t"; \
 		strip -s $(GOPATH)/bin/$$cmd ; \
 		du -h $(GOPATH)/bin/$$cmd ; \
 	done

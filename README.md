@@ -13,6 +13,7 @@ If you are looking for a static simple shell, take a look on
 
 - echo: 44 LoC
 - cat: 72 LoC
+- kill: 113 LoC
 
 ## Dependencies
 

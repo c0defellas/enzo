@@ -1,35 +1,33 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"os"
 	"strconv"
-	"fmt"
-	"flag"
-
-	killer "github.com/tiago4orion/enzo/cmd/kill/killer"
 )
-
-// save own name for easier reference
-var me = os.Args[0]
 
 func usage() {
 	fmt.Println("Usage:")
 	fmt.Println("kill [-safe] pids")
 	flag.PrintDefaults()
-	os.Exit(22); // EINVAL
+	os.Exit(1)
 }
 
-func sliceatoi(ss []string) ([]int, error) {
-	is := make([]int, 0, len(ss))
+func sliceatoi(strNumbers []string) ([]int, error) {
+	numbers := make([]int, 0, len(strNumbers))
 
-	for _, s := range ss {
-		i, err := strconv.Atoi(s)
+	for _, str := range strNumbers {
+		i, err := strconv.Atoi(str)
+
 		if err != nil {
 			return []int{}, err
 		}
-		is = append(is, i)
+
+		numbers = append(numbers, i)
 	}
-	return is, nil
+
+	return numbers, nil
 }
 
 func parseargs() ([]int, bool) {
@@ -39,21 +37,24 @@ func parseargs() ([]int, bool) {
 	flag.Parse()
 
 	pids, err := sliceatoi(flag.Args())
+
 	if err != nil || len(pids) == 0 {
 		usage()
 	}
+
 	return pids, safe
 }
 
 func main() {
 	pids, safe := parseargs()
-	errm := killer.Kill(pids, safe)
+	errs := kill(pids, safe)
 
 	// some went wrong
-	if len(errm) > 0 {
-		for p, e := range errm {
-			fmt.Printf("%s: [%d] - %s\n", me, p, e.Error())
+	if len(errs) > 0 {
+		for pid, err := range errs {
+			fmt.Printf("%s: [%d] - %s\n", os.Args[0], pid, err.Error())
 		}
+
 		os.Exit(1)
 	}
 }
