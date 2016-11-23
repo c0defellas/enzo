@@ -12,6 +12,7 @@ If you are looking for a static simple shell, take a look on
 ## Programs available:
 
 - echo: 44 LoC
+- ls: 85 LoC
 - cat: 72 LoC
 - kill: 113 LoC
 
