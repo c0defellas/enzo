@@ -57,7 +57,10 @@ func TestListCurrentDirAsAList(t *testing.T) {
 	defer teardown()
 
 	var buf bytes.Buffer
-	expected := "f1.txt f2.pdf f3 'file with space' "
+	expected := "f1.txt\n" +
+		"f2.pdf\n" +
+		"f3\n" +
+		"'file with space'\n"
 
 	files, _ := ioutil.ReadDir(tempDir)
 	ls(files, &buf, printFileNames)

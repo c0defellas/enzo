@@ -52,7 +52,7 @@ func printFileList(fileInfo os.FileInfo) string {
 }
 
 func printFileNames(fileInfo os.FileInfo) string {
-	return fmt.Sprintf("%s ", formatFileName(fileInfo.Name()))
+	return fmt.Sprintf("%s\n", formatFileName(fileInfo.Name()))
 }
 
 func ls(files []os.FileInfo, writer io.Writer, fn formatter) {
@@ -80,6 +80,5 @@ func main() {
 		ls(files, os.Stdout, printFileList)
 	} else {
 		ls(files, os.Stdout, printFileNames)
-		os.Stdout.Write([]byte{0xa})
 	}
 }
