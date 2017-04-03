@@ -16,7 +16,7 @@ const (
 	GB
 )
 
-type formatter func(os.FileInfo) string
+type formatter func(os.FileInfo) (string, error)
 
 func fatal(err error) {
 	fmt.Fprintf(os.Stderr, "error: %s\n", err)
@@ -43,22 +43,38 @@ func formatFileName(name string) string {
 	return name
 }
 
-func printFileList(fileInfo os.FileInfo) string {
-	return fmt.Sprintf(
-		"%s %6s %s\n",
-		fileInfo.Mode(),
-		humanizeSize(fileInfo.Size()),
-		formatFileName(fileInfo.Name()))
-}
-
-func printFileNames(fileInfo os.FileInfo) string {
-	return fmt.Sprintf("%s\n", formatFileName(fileInfo.Name()))
-}
-
-func ls(files []os.FileInfo, writer io.Writer, fn formatter) {
-	for _, f := range files {
-		fmt.Fprint(writer, fn(f))
+func printFileList(fileInfo os.FileInfo) (string, error) {
+	userName, err := lookupUser(fileInfo)
+	if err != nil {
+		return "", err
 	}
+	groupName, err := lookupGroup(fileInfo)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(
+		"%s %s %s %6s %s\n",
+		fileInfo.Mode(),
+		userName,
+		groupName,
+		humanizeSize(fileInfo.Size()),
+		formatFileName(fileInfo.Name()),
+	), nil
+}
+
+func printFileNames(fileInfo os.FileInfo) (string, error) {
+	return fmt.Sprintf("%s\n", formatFileName(fileInfo.Name())), nil
+}
+
+func ls(files []os.FileInfo, writer io.Writer, fn formatter) error {
+	for _, f := range files {
+		txt, err := fn(f)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(writer, txt)
+	}
+	return nil
 }
 
 func main() {
@@ -76,9 +92,14 @@ func main() {
 		fatal(err)
 	}
 
+	f := printFileNames
+
 	if *l {
-		ls(files, os.Stdout, printFileList)
-	} else {
-		ls(files, os.Stdout, printFileNames)
+		f = printFileList
+	}
+
+	err = ls(files, os.Stdout, f)
+	if err != nil {
+		fatal(err)
 	}
 }
