@@ -14,17 +14,15 @@ const (
 	KB float64 = 1 << (10 * iota)
 	MB
 	GB
+	TB
 )
 
 type formatter func(os.FileInfo) (string, error)
 
-func fatal(err error) {
-	fmt.Fprintf(os.Stderr, "error: %s\n", err)
-	os.Exit(1)
-}
-
 func humanizeSize(size int64) string {
 	switch sz := float64(size); {
+	case (sz >= TB):
+		return fmt.Sprintf("%.2fT", sz/TB)
 	case (sz >= GB):
 		return fmt.Sprintf("%.2fG", sz/GB)
 	case (sz >= MB):
@@ -77,29 +75,52 @@ func ls(files []os.FileInfo, writer io.Writer, fn formatter) error {
 	return nil
 }
 
-func main() {
-	path := "."
+func runls(paths []string, writer io.Writer, fn formatter) error {
+	for _, path := range paths {
+		fileInfo, err := os.Stat(path)
+		if err != nil {
+			return err
+		}
 
+		files := []os.FileInfo{fileInfo}
+		if fileInfo.IsDir() {
+			files, err = ioutil.ReadDir(path)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = ls(files, writer, fn)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func parseargs() ([]string, bool) {
 	l := flag.Bool("l", false, "use a long listing format")
 	flag.Parse()
 
 	if len(flag.Args()) > 0 {
-		path = flag.Args()[0]
+		return flag.Args(), *l
 	}
 
-	files, err := ioutil.ReadDir(path)
+	return []string{"."}, *l
+}
+
+func main() {
+	paths, list := parseargs()
+
+	fn := printFileNames
+	if list {
+		fn = printFileList
+	}
+
+	err := runls(paths, os.Stdout, fn)
 	if err != nil {
-		fatal(err)
-	}
-
-	f := printFileNames
-
-	if *l {
-		f = printFileList
-	}
-
-	err = ls(files, os.Stdout, f)
-	if err != nil {
-		fatal(err)
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		os.Exit(1)
 	}
 }
