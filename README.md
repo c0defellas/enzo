@@ -15,6 +15,7 @@ If you are looking for a static simple shell, take a look on
 - ls: 85 LoC
 - cat: 72 LoC
 - kill: 113 LoC
+- uniq: 145 LoC
 
 ## Dependencies
 
